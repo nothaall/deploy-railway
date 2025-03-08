@@ -9,33 +9,32 @@ const bot = new TelegramBot(
     { polling: true }
 );
 
-bot.onText(/\/get_items (.+)/, async (message, match) => {
-    const chatId = message.chat.id;
+const getData = async (n, chatId) => {
+    const date = Date.now();
+    const promise = await fetch(`https://odds.stagbet.site/v1/events/${n}/0/sub/2000/line/ru`, {
+        "method": "GET",
+        "headers": {
+            "Package": "testbeapidemokey"
+        },
+        signal
+    });
+    console.log(Date.now() - date);
 
-    const hashTag = match[1];
+    await bot.sendMessage(chatId, Date.now() - date);
 
-    const sections = await getItems(hashTag, 'eb8556fa40534a0aa949c91d3169a6bd');
+    return promise;
+};
 
-    let count = 0;
+bot.onText(/\/start (.+)/, async (message, match) => {
+    const sports_ids = [1, 2, 3, 4, 6, 10, 86, 97];
 
-    for (const section of sections) {
-        if (section.layout_type.startsWith('two_by_two')) {
-            for (const item of section.layout_content.fill_items) {
-                await bot.sendMessage(chatId, `https://www.instagram.com/p/${item.media.code}/`);
-                count++;
-            }
+    while (true) {
+        for (let index = 0; index < sports_ids.length; index++) {
+            const sport_id = sports_ids[index];
 
-            console.log(section);
+            getData(sport_id, message.chat.id);
 
-            await bot.sendMessage(chatId, `https://www.instagram.com/p/${section.layout_content.two_by_two_item.channel.media.code}/`);
-            count++;
-        } else {
-            for (const item of section.layout_content.medias) {
-                await bot.sendMessage(chatId, `https://www.instagram.com/p/${item.media.code}/`);
-                count++;
-            }
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
     }
-
-    await bot.sendMessage(chatId, count);
-  });
+});
