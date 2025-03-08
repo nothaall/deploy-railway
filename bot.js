@@ -15,8 +15,7 @@ const getData = async (n, chatId) => {
         "method": "GET",
         "headers": {
             "Package": "testbeapidemokey"
-        },
-        signal
+        }
     });
     console.log(Date.now() - date);
 
